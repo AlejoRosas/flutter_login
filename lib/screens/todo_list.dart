@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:login/widgets/navbar.dart';
 
 import '../services/todo_service.dart';
+import '../services/user_service.dart';
 import '../utils/snackbar_helper.dart';
 import '../widgets/todo_card.dart';
 import 'add_page.dart';
@@ -16,17 +17,21 @@ class TodoListPage extends StatefulWidget {
 class _TodoListPageState extends State<TodoListPage> {
   bool isLoading = true;
   List items = [];
+  String correoUsuario = "";
+  String nombreUsuario = "";
+
 
   @override
   void initState() {
     super.initState();
     fetchTodo();
+    getUserData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const MyNavBar(),
+      drawer: MyNavBar(correo: correoUsuario, username: nombreUsuario,),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 57, 61, 70),
         shape: const RoundedRectangleBorder(
@@ -126,5 +131,19 @@ class _TodoListPageState extends State<TodoListPage> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> getUserData() async {
+    final response = await UserService.getUserInfo();
+
+    if (response != null) {
+      setState(() {
+      correoUsuario=response['email'];
+      nombreUsuario=response['nombres'];
+      });
+    } else {
+      // ignore: use_build_context_synchronously
+      showErrorMessage(context, message: 'User Data Failed');
+    }
   }
 }

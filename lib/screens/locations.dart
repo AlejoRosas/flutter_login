@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:login/screens/add_page.dart';
 import 'package:login/services/todo_service.dart';
+import 'package:login/services/user_service.dart';
 import 'package:login/utils/snackbar_helper.dart';
 
 import '../widgets/navbar.dart';
 
 class Locations extends StatefulWidget {
-  const Locations({super.key});
+  const Locations({
+    super.key,
+  });
 
   @override
   State<Locations> createState() => _LocationsState();
@@ -16,16 +18,19 @@ class Locations extends StatefulWidget {
 class _LocationsState extends State<Locations> {
   bool isLoading = true;
   List items = [];
+  String correoUsuario = "";
+  String nombreUsuario = "";
   @override
   void initState() {
     super.initState();
     fetchTodo();
+    getUserData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const MyNavBar(),
+      drawer: MyNavBar(correo: correoUsuario, username: nombreUsuario,),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 57, 61, 70),
         shape: const RoundedRectangleBorder(
@@ -45,33 +50,51 @@ class _LocationsState extends State<Locations> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Table(
-              border: TableBorder.all(       
-                style: BorderStyle.none,
-                borderRadius: const BorderRadius.all(Radius.circular(20))  
-              ),
+              border: TableBorder.all(
+                  style: BorderStyle.solid,
+                  color: const Color.fromARGB(255, 214, 214, 214),
+                  borderRadius: const BorderRadius.all(Radius.circular(20))),
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              
               children: [
                 const TableRow(
                   decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 76, 74, 74),
-                      borderRadius: BorderRadius.vertical(top:Radius.circular(20))//Color celda
+                      color: Color.fromARGB(255, 214, 214, 214),
+                      borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20)) //Color celda
                       ),
-                  
                   children: [
                     TableCell(
-                      
                       verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Padding(
                         padding: EdgeInsets.all(8),
-                        child: Center(child: Text('Location')),
+                        child: Center(
+                          child: Text(
+                            'Location',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
                       ),
                     ),
                     TableCell(
                       verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Padding(
                         padding: EdgeInsets.all(8),
-                        child: Center(child: Text('Value')),
+                        child: Center(
+                            child: Text(
+                          'Value',
+                          style: TextStyle(color: Colors.black),
+                        )),
+                      ),
+                    ),
+                    TableCell(
+                      verticalAlignment: TableCellVerticalAlignment.middle,
+                      child: Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Center(
+                            child: Text(
+                          'Options',
+                          style: TextStyle(color: Colors.black),
+                        )),
                       ),
                     ),
                   ],
@@ -80,51 +103,57 @@ class _LocationsState extends State<Locations> {
                   items.length,
                   (index) => TableRow(
                     decoration: BoxDecoration(
-                       gradient: index % 2 == 0 ? 
-                       const LinearGradient(
-                        colors: [
-                          Colors.redAccent,
-                          Colors.purpleAccent
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        
-                      )
-                       : const LinearGradient(
-                        colors: [
-                          Colors.blueAccent,
-                          Colors.greenAccent
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        
-                      ),
-                       
+                      color: index % 2 == 0
+                          ? null
+                          : const Color.fromARGB(255, 76, 74, 74),
+
                       //borderRadius: BorderRadius.all(Radius.circular(12))//Color celda
                       borderRadius: index == items.length - 1
-                    ? const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      )
-                    : BorderRadius.zero,
+                          ? const BorderRadius.only(
+                              bottomLeft: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                            )
+                          : BorderRadius.zero,
                     ),
-                    
                     children: [
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 50.0,
+                            horizontal: 10.0,
                             vertical: 12,
                           ),
                           child: Text(items[index]['nombre']),
                         ),
                       ),
                       TableCell(
-                        
-                        child: Padding(
-                          
-                          padding: const EdgeInsets.symmetric(horizontal: 65.0),
+                        child: Center(
+                          //padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Text('${items[index]['valor']}'),
+                        ),
+                      ),
+                      TableCell(
+                        child: PopupMenuButton(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              // Open edit page
+                              navigateToEditPage(items[index]);
+                            } else if (value == 'delete') {
+                              // Delete and remove the item
+                              deleteById(items[index]['id'].toString() );
+                            }
+                          },
+                          itemBuilder: (context) {
+                            return [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Text('Edit'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete'),
+                              ),
+                            ];
+                          },
                         ),
                       ),
                     ],
@@ -165,7 +194,7 @@ class _LocationsState extends State<Locations> {
   }
 
   Future<void> deleteById(String id) async {
-    // Delete the item
+    // Delete the item 
     final isSuccess = await TodoService.deleteById(id);
 
     if (isSuccess) {
@@ -194,4 +223,19 @@ class _LocationsState extends State<Locations> {
       isLoading = false;
     });
   }
+
+  Future<void> getUserData() async {
+    final response = await UserService.getUserInfo();
+
+    if (response != null) {
+      setState(() {
+        correoUsuario=response['email'];
+        nombreUsuario=response['nombres'];
+      });
+    } else {
+      // ignore: use_build_context_synchronously
+      showErrorMessage(context, message: 'User Data Failed');
+    }
+  }
+
 }
