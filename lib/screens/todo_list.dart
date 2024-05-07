@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login/widgets/navbar.dart';
 
 import '../services/todo_service.dart';
 import '../utils/snackbar_helper.dart';
@@ -25,6 +26,7 @@ class _TodoListPageState extends State<TodoListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const MyNavBar(),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 57, 61, 70),
         shape: const RoundedRectangleBorder(
@@ -34,7 +36,7 @@ class _TodoListPageState extends State<TodoListPage> {
           ),
         ),
         centerTitle: true,
-        title: const Text('Todo List'),
+        title: const Text('Locations'),
       ),
       body: Visibility(
         visible: isLoading,

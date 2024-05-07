@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login/screens/locations.dart';
 //import 'package:login/screens/locations.dart';
 import 'package:login/screens/todo_list.dart';
 //import 'screens/todo_list.dart';
@@ -19,7 +20,9 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => const Login(),
           '/login': (context) => const Login(),
-          '/home': (context) => const TodoListPage(),
-        });
+          '/list': (context) => const TodoListPage(),
+          '/table': (context) => const Locations(),
+        }
+      );
   }
 }
